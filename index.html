@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaun Banega Valentine's King ❤️</title>
+    <style>
+        body {
+            text-align: center;
+            background: linear-gradient(to right, #ff758c, #ff7eb3);
+            font-family: 'Georgia', serif;
+            color: white;
+            user-select: none;
+        }
+        h1 { font-size: 35px; }
+        .container { display: none; }
+        .login-container { margin-top: 50px; }
+        .input-box {
+            padding: 10px;
+            font-size: 18px;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        .btn {
+            padding: 12px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            border: none;
+            color: white;
+        }
+        .start-btn { background-color: #ff2e63; }
+        .answer-btn { background-color: #444; width: 40%; }
+        .correct { background-color: green !important; }
+        .wrong { background-color: red !important; }
+        .control-btn { background-color: #007bff; }
+        .refresh-btn { background-color: #28a745; }
+        .call-btn { background-color: #d9534f; }
+        .read-btn { background-color: #ff9800; }
+        .mute-btn { background-color: #6c757d; }
+    </style>
+</head>
+<body>
+
+    <h1>🎤 Kaun Banega Valentine's King? ❤️</h1>
+
+    <!-- Login Section -->
+    <div class="login-container" id="loginContainer">
+        <h2>🔑 लॉगिन करें</h2>
+        <input class="input-box" type="text" id="username" placeholder="अपना नाम डालें"><br>
+        <input class="input-box" type="password" id="password" placeholder="पासवर्ड (1234)"><br>
+        <button class="btn start-btn" onclick="login()">🔓 लॉगिन करें</button>
+        <p id="loginError" style="color: yellow;"></p>
+        <button class="btn call-btn" onclick="callSatyam()">📞 Satyam Pal को Call करें</button>
+    </div>
+
+    <!-- Game Section -->
+    <div class="container" id="gameContainer">
+        <h2 id="question"></h2>
+        <button class="btn answer-btn" onclick="checkAnswer(0)">A</button>
+        <button class="btn answer-btn" onclick="checkAnswer(1)">B</button>
+        <button class="btn answer-btn" onclick="checkAnswer(2)">C</button>
+        <button class="btn answer-btn" onclick="checkAnswer(3)">D</button>
+        <p id="lockText"></p>
+        <p id="result"></p>
+        <br>
+        <button class="btn read-btn" onclick="readQuestion()">📢 सवाल पढ़ें</button>
+        <button class="btn mute-btn" onclick="toggleMusic()">🔇 म्यूजिक बंद करें</button>
+        <br>
+        <button class="btn control-btn" onclick="prevQuestion()">⏮️ पिछला</button>
+        <button class="btn control-btn" onclick="nextQuestion()">⏭️ अगला</button>
+        <button class="btn refresh-btn" onclick="location.reload()">🔄 रीफ्रेश</button>
+    </div>
+
+    <!-- Sounds -->
+    <audio id="backgroundMusic" src="https://www.fesliyanstudios.com/play-mp3/4385" preload="auto" loop></audio>
+    <audio id="correctSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+    <audio id="wrongSound" src="https://www.fesliyanstudios.com/play-mp3/2492" preload="auto"></audio>
+    <audio id="lockSound" src="https://www.fesliyanstudios.com/play-mp3/4383" preload="auto"></audio>
+
+    <script>
+        let questions = [
+            { q: "Boyfriend-Girlfriend सबसे ज्यादा किस बात पर लड़ते हैं?", options: ["Late reply", "शॉपिंग", "Game खेलना", "गलत नाम लेना"], correct: 0 },
+            { q: "पति-पत्नी में सबसे बड़ी लड़ाई किस वजह से होती है?", options: ["रिमोट", "खाना", "Date भूलना", "सफाई"], correct: 2 },
+            { q: "GF का सबसे बड़ा सुपरपावर क्या होता है?", options: ["कभी माफ ना करना", "खर्चा करवाना", "हर चीज़ पता होना", "रूठ जाना"], correct: 2 },
+        ];
+
+        let currentQuestion = 0, score = 0;
+        let bgMusic = document.getElementById("backgroundMusic");
+        bgMusic.volume = 0.25;
+        let isMusicPlaying = true;
+
+        function login() {
+            let password = document.getElementById("password").value;
+
+            if (password !== "1234") {
+                let speech = new SpeechSynthesisUtterance("Aapka password galat hai. Aap Satyam Pal ko call kar sakte hain.");
+                speech.volume = 1.0;
+                window.speechSynthesis.speak(speech);
+                document.getElementById("loginError").innerText = "❌ पासवर्ड गलत है!";
+                return;
+            }
+
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("gameContainer").style.display = "block";
+            bgMusic.play();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            let q = questions[currentQuestion];
+            document.getElementById("question").innerText = "Q" + (currentQuestion + 1) + ": " + q.q;
+            let buttons = document.querySelectorAll(".answer-btn");
+            buttons.forEach((btn, index) => {
+                btn.innerText = q.options[index];
+                btn.classList.remove("correct", "wrong");
+                btn.disabled = false;
+            });
+
+            readQuestion();
+        }
+
+        function readQuestion() {
+            let q = questions[currentQuestion].q;
+            let speech = new SpeechSynthesisUtterance(q);
+            speech.lang = "hi-IN";
+            speech.volume = 1.0;
+            window.speechSynthesis.speak(speech);
+        }
+
+        function checkAnswer(index) {
+            let q = questions[currentQuestion];
+            let buttons = document.querySelectorAll(".answer-btn");
+            document.getElementById("lockSound").play();
+            setTimeout(() => {
+                buttons.forEach(btn => btn.disabled = true);
+                if (index === q.correct) {
+                    buttons[index].classList.add("correct");
+                    document.getElementById("correctSound").play();
+                    score++;
+                } else {
+                    buttons[index].classList.add("wrong");
+                    document.getElementById("wrongSound").play();
+                }
+                nextQuestion();
+            }, 2000);
+        }
+
+        function nextQuestion() { currentQuestion = (currentQuestion + 1) % questions.length; loadQuestion(); }
+        function prevQuestion() { currentQuestion = (currentQuestion - 1 + questions.length) % questions.length; loadQuestion(); }
+        function toggleMusic() { 
+            if (isMusicPlaying) {
+                bgMusic.pause();
+                document.querySelector(".mute-btn").innerText = "🔊 म्यूजिक चालू करें";
+            } else {
+                bgMusic.play();
+                document.querySelector(".mute-btn").innerText = "🔇 म्यूजिक बंद करें";
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+        function callSatyam() { window.location.href = "tel:9695852524"; }
+    </script>
+
+</body>
+</html>
