@@ -50,7 +50,7 @@
     <div class="login-container" id="loginContainer">
         <h2>🔑 लॉगिन करें</h2>
         <input class="input-box" type="text" id="username" placeholder="अपना नाम डालें"><br>
-        <input class="input-box" type="password" id="password" placeholder="पासवर्ड (Love)"><br>
+        <input class="input-box" type="password" id="password" placeholder="पासवर्ड (1234)"><br>
         <button class="btn start-btn" onclick="login()">🔓 लॉगिन करें</button>
         <p id="loginError" style="color: yellow;"></p>
         <button class="btn call-btn" onclick="callSatyam()">📞 Satyam Pal को Call करें</button>
@@ -95,7 +95,7 @@
         function login() {
             let password = document.getElementById("password").value;
 
-            if (password !== "1234") {
+            if (password !== "9695") {
                 let speech = new SpeechSynthesisUtterance("Aapka password galat hai. Aap Satyam Pal ko call kar sakte hain.");
                 speech.volume = 1.0;
                 window.speechSynthesis.speak(speech);
